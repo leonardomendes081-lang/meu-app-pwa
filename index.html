@@ -1,106 +1,142 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meu App</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolução</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#111111">
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#0f0f0f;
+    color:white;
+    padding:20px;
+}
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
 
-    .container {
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
+.card{
+    background:#1a1a1a;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:12px;
+}
 
-    h1 {
-      margin-bottom: 20px;
-    }
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:8px;
+    background:#00c853;
+    color:white;
+    font-weight:bold;
+}
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: none;
-    }
+button:active{
+    transform:scale(0.98);
+}
 
-    button {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      background: #00c853;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
+.progress{
+    height:8px;
+    background:#333;
+    border-radius:4px;
+    margin-top:8px;
+    overflow:hidden;
+}
 
-    button:active {
-      transform: scale(0.98);
-    }
-
-    .saved {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #00e676;
-    }
-  </style>
+.progress-bar{
+    height:8px;
+    background:#00c853;
+    width:0%;
+}
+</style>
 </head>
+
 <body>
 
-  <div class="container">
-    <h1>Meu App</h1>
+<h1>Sistema de Evolução</h1>
 
-    <input type="text" id="input" placeholder="Digite algo...">
-    <button onclick="salvar()">Salvar</button>
-    <button onclick="resetar()">Resetar</button>
+<div class="card">
+    <h3>Disciplina</h3>
+    <div class="progress"><div id="disciplinaBar" class="progress-bar"></div></div>
+    <button onclick="evoluir('disciplina')">Completar tarefa</button>
+</div>
 
-    <div class="saved" id="status"></div>
-  </div>
+<div class="card">
+    <h3>Força Física</h3>
+    <div class="progress"><div id="forcaBar" class="progress-bar"></div></div>
+    <button onclick="evoluir('forca')">Completar tarefa</button>
+</div>
 
-  <script>
-    const input = document.getElementById("input");
-    const status = document.getElementById("status");
+<div class="card">
+    <h3>Intelecto</h3>
+    <div class="progress"><div id="intelectoBar" class="progress-bar"></div></div>
+    <button onclick="evoluir('intelecto')">Completar tarefa</button>
+</div>
 
-    // Carregar ao abrir
-    window.onload = () => {
-      const dado = localStorage.getItem("meuApp");
-      if (dado) input.value = dado;
-    };
+<div class="card">
+    <h3>Financeiro</h3>
+    <div class="progress"><div id="financeiroBar" class="progress-bar"></div></div>
+    <button onclick="evoluir('financeiro')">Completar tarefa</button>
+</div>
 
-    function salvar() {
-      localStorage.setItem("meuApp", input.value);
-      status.innerText = "Salvo com sucesso ✔";
-      setTimeout(() => status.innerText = "", 2000);
+<div class="card">
+    <h3>Espiritual</h3>
+    <div class="progress"><div id="espiritualBar" class="progress-bar"></div></div>
+    <button onclick="evoluir('espiritual')">Completar tarefa</button>
+</div>
+
+<div class="card">
+    <h3>Social</h3>
+    <div class="progress"><div id="socialBar" class="progress-bar"></div></div>
+    <button onclick="evoluir('social')">Completar tarefa</button>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+
+let atributos = JSON.parse(localStorage.getItem("atributos")) || {
+    disciplina:0,
+    forca:0,
+    intelecto:0,
+    financeiro:0,
+    espiritual:0,
+    social:0
+};
+
+function salvar(){
+    localStorage.setItem("atributos", JSON.stringify(atributos));
+}
+
+function evoluir(tipo){
+    atributos[tipo] += 5;
+    if(atributos[tipo] > 100){
+        atributos[tipo] = 100;
     }
+    atualizar();
+    salvar();
+}
 
-    function resetar() {
-      localStorage.removeItem("meuApp");
-      input.value = "";
-      status.innerText = "Dados apagados";
-      setTimeout(() => status.innerText = "", 2000);
-    }
+function atualizar(){
+    document.getElementById("disciplinaBar").style.width = atributos.disciplina + "%";
+    document.getElementById("forcaBar").style.width = atributos.forca + "%";
+    document.getElementById("intelectoBar").style.width = atributos.intelecto + "%";
+    document.getElementById("financeiroBar").style.width = atributos.financeiro + "%";
+    document.getElementById("espiritualBar").style.width = atributos.espiritual + "%";
+    document.getElementById("socialBar").style.width = atributos.social + "%";
+}
 
-    // Registrar Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-  </script>
+atualizar();
+</script>
 
 </body>
 </html>
