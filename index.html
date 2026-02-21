@@ -105,12 +105,12 @@ if ('serviceWorker' in navigator) {
 }
 
 let atributos = JSON.parse(localStorage.getItem("atributos")) || {
-    disciplina:0,
-    forca:0,
-    intelecto:0,
-    financeiro:0,
-    espiritual:0,
-    social:0
+    disciplina:{xp:0,nivel:1},
+    forca:{xp:0,nivel:1},
+    intelecto:{xp:0,nivel:1},
+    financeiro:{xp:0,nivel:1},
+    espiritual:{xp:0,nivel:1},
+    social:{xp:0,nivel:1}
 };
 
 function salvar(){
@@ -118,21 +118,32 @@ function salvar(){
 }
 
 function evoluir(tipo){
-    atributos[tipo] += 5;
-    if(atributos[tipo] > 100){
-        atributos[tipo] = 100;
+    atributos[tipo].xp += 20;
+
+    if(atributos[tipo].xp >= 100){
+        atributos[tipo].xp = 0;
+        atributos[tipo].nivel += 1;
+        alert(tipo.toUpperCase() + " subiu para o nível " + atributos[tipo].nivel);
     }
+
     atualizar();
     salvar();
 }
 
 function atualizar(){
-    document.getElementById("disciplinaBar").style.width = atributos.disciplina + "%";
-    document.getElementById("forcaBar").style.width = atributos.forca + "%";
-    document.getElementById("intelectoBar").style.width = atributos.intelecto + "%";
-    document.getElementById("financeiroBar").style.width = atributos.financeiro + "%";
-    document.getElementById("espiritualBar").style.width = atributos.espiritual + "%";
-    document.getElementById("socialBar").style.width = atributos.social + "%";
+    document.getElementById("disciplinaBar").style.width = atributos.disciplina.xp + "%";
+    document.getElementById("forcaBar").style.width = atributos.forca.xp + "%";
+    document.getElementById("intelectoBar").style.width = atributos.intelecto.xp + "%";
+    document.getElementById("financeiroBar").style.width = atributos.financeiro.xp + "%";
+    document.getElementById("espiritualBar").style.width = atributos.espiritual.xp + "%";
+    document.getElementById("socialBar").style.width = atributos.social.xp + "%";
+
+    document.querySelectorAll(".card")[0].querySelector("h3").innerText = "Disciplina - Nível " + atributos.disciplina.nivel;
+    document.querySelectorAll(".card")[1].querySelector("h3").innerText = "Força Física - Nível " + atributos.forca.nivel;
+    document.querySelectorAll(".card")[2].querySelector("h3").innerText = "Intelecto - Nível " + atributos.intelecto.nivel;
+    document.querySelectorAll(".card")[3].querySelector("h3").innerText = "Financeiro - Nível " + atributos.financeiro.nivel;
+    document.querySelectorAll(".card")[4].querySelector("h3").innerText = "Espiritual - Nível " + atributos.espiritual.nivel;
+    document.querySelectorAll(".card")[5].querySelector("h3").innerText = "Social - Nível " + atributos.social.nivel;
 }
 
 atualizar();
