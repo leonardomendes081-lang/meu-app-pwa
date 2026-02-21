@@ -1,1 +1,150 @@
-index.html
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ascensão 2.1</title>
+<link rel="manifest" href="manifest.json">
+<style>
+body{background:#0a0a0f;color:#00eaff;font-family:Arial;text-align:center;margin:0}
+h1{margin:15px}
+.container{padding:15px}
+.task{margin:10px 0;padding:10px;border-radius:8px}
+.red{border:2px solid #ff3b3b}
+.yellow{border:2px solid #ffd000}
+.green{border:2px solid #00ff88}
+button{margin-top:5px;padding:5px 10px;background:#111;color:white;border:none}
+.stats{margin-top:20px;padding:10px;border-top:1px solid #00eaff}
+.small{font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+
+<h1>PROJETO ASCENSÃO</h1>
+<div class="container" id="tasks"></div>
+<div class="stats" id="stats"></div>
+
+<script>
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('sw.js');
+}
+
+const LIMITE_DIARIO = 50;
+
+let data = JSON.parse(localStorage.getItem("ascensao21")) || {
+xpTotal:0,
+meses:{},
+hoje:null
+};
+
+const tarefasBase = [
+{name:"Fortalecimento da perna",atributo:"Força",xp:10,nivel:"red"},
+{name:"Academia",atributo:"Força",xp:8,nivel:"yellow"},
+{name:"Atividade física leve",atributo:"Força",xp:5,nivel:"green"},
+{name:"Estudo produtivo",atributo:"Conhecimento",xp:10,nivel:"red"},
+{name:"Café da manhã adequado",atributo:"Saúde",xp:8,nivel:"yellow"},
+{name:"Lanche manhã",atributo:"Saúde",xp:5,nivel:"green"},
+{name:"Almoço equilibrado",atributo:"Saúde",xp:10,nivel:"red"},
+{name:"Lanche tarde",atributo:"Saúde",xp:5,nivel:"green"},
+{name:"Jantar leve",atributo:"Saúde",xp:8,nivel:"yellow"},
+{name:"Hidratação completa",atributo:"Saúde",xp:10,nivel:"red"},
+{name:"Leitura filosófica",atributo:"Mentalidade",xp:8,nivel:"yellow"},
+{name:"Reflexão escrita",atributo:"Mentalidade",xp:5,nivel:"green"},
+{name:"Dia sem pornografia",atributo:"Mentalidade",xp:10,nivel:"red"}
+];
+
+function getHoje(){
+return new Date().toISOString().split("T")[0];
+}
+
+function iniciarDia(){
+let hoje = getHoje();
+if(data.hoje !== hoje){
+fecharDia();
+data.hoje = hoje;
+data.meses[hoje] = {xp:0,tarefas:{}};
+salvar();
+}
+}
+
+function fecharDia(){
+if(!data.hoje) return;
+let dia = data.meses[data.hoje];
+if(!dia) return;
+
+tarefasBase.forEach(t=>{
+if(t.nivel==="red" && !dia.tarefas[t.name]){
+data.xpTotal -= 5;
+}
+});
+}
+
+function salvar(){
+localStorage.setItem("ascensao21",JSON.stringify(data));
+}
+
+function calcularLevel(xp){
+return Math.floor(0.12*Math.sqrt(Math.max(xp,0)));
+}
+
+function adicionarXP(nome){
+let hoje = data.hoje;
+let dia = data.meses[hoje];
+
+if(dia.tarefas[nome]) return;
+
+let tarefa = tarefasBase.find(t=>t.name===nome);
+
+if(dia.xp + tarefa.xp > LIMITE_DIARIO){
+let restante = LIMITE_DIARIO - dia.xp;
+if(restante<=0) return;
+data.xpTotal += restante;
+dia.xp = LIMITE_DIARIO;
+}else{
+data.xpTotal += tarefa.xp;
+dia.xp += tarefa.xp;
+}
+
+dia.tarefas[nome]=true;
+salvar();
+render();
+}
+
+function calcularDisciplina(){
+let hoje = data.hoje;
+let dia = data.meses[hoje];
+let total = tarefasBase.length;
+let feitas = Object.keys(dia.tarefas).length;
+return Math.round((feitas/total)*100);
+}
+
+function render(){
+iniciarDia();
+let hoje = data.hoje;
+let dia = data.meses[hoje];
+
+let html="";
+tarefasBase.forEach(t=>{
+html+=`
+<div class="task ${t.nivel}">
+<strong>${t.name}</strong><br>
+XP: ${t.xp}<br>
+<button onclick="adicionarXP('${t.name}')">Concluir</button>
+</div>
+`;
+});
+document.getElementById("tasks").innerHTML=html;
+
+document.getElementById("stats").innerHTML=`
+Level: ${calcularLevel(data.xpTotal)}<br>
+XP Total: ${data.xpTotal}<br>
+XP Hoje: ${dia.xp}/${LIMITE_DIARIO}<br>
+Disciplina: ${calcularDisciplina()}%
+`;
+}
+
+render();
+</script>
+
+</body>
+</html>
