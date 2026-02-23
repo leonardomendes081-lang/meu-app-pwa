@@ -6,98 +6,29 @@
 <title>Evolução</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
-
-<style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:#0f0f0f;
-    color:white;
-    padding:20px;
-}
-
-h1{
-    text-align:center;
-    margin-bottom:20px;
-}
-
-.card{
-    background:#1a1a1a;
-    padding:15px;
-    margin-bottom:15px;
-    border-radius:12px;
-}
-
-button{
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    border:none;
-    border-radius:8px;
-    background:#00c853;
-    color:white;
-    font-weight:bold;
-}
-
-button:active{
-    transform:scale(0.98);
-}
-
-.progress{
-    height:8px;
-    background:#333;
-    border-radius:4px;
-    margin-top:8px;
-    overflow:hidden;
-}
-
-.progress-bar{
-    height:8px;
-    background:#00c853;
-    width:0%;
-}
-</style>
-</head>
-
+    
 <body>
 
 <h1>Sistema de Evolução</h1>
 
 <div class="card">
-    <h3>Disciplina</h3>
-    <div class="progress"><div id="disciplinaBar" class="progress-bar"></div></div>
-    <button onclick="evoluir('disciplina')">Completar tarefa</button>
+  <h3>Criar Nova Missão</h3>
+  <input type="text" id="nomeMissao" placeholder="Nome da missão">
+  
+  <select id="atributoMissao">
+    <option value="disciplina">Disciplina</option>
+    <option value="forca">Força Física</option>
+    <option value="intelecto">Intelecto</option>
+    <option value="financeiro">Financeiro</option>
+    <option value="espiritual">Espiritual</option>
+    <option value="social">Social</option>
+  </select>
+
+  <input type="number" id="xpMissao" placeholder="XP (ex: 20)">
+  <button onclick="criarMissao()">Criar Missão</button>
 </div>
 
-<div class="card">
-    <h3>Força Física</h3>
-    <div class="progress"><div id="forcaBar" class="progress-bar"></div></div>
-    <button onclick="evoluir('forca')">Completar tarefa</button>
-</div>
-
-<div class="card">
-    <h3>Intelecto</h3>
-    <div class="progress"><div id="intelectoBar" class="progress-bar"></div></div>
-    <button onclick="evoluir('intelecto')">Completar tarefa</button>
-</div>
-
-<div class="card">
-    <h3>Financeiro</h3>
-    <div class="progress"><div id="financeiroBar" class="progress-bar"></div></div>
-    <button onclick="evoluir('financeiro')">Completar tarefa</button>
-</div>
-
-<div class="card">
-    <h3>Espiritual</h3>
-    <div class="progress"><div id="espiritualBar" class="progress-bar"></div></div>
-    <button onclick="evoluir('espiritual')">Completar tarefa</button>
-</div>
-
-<div class="card">
-    <h3>Social</h3>
-    <div class="progress"><div id="socialBar" class="progress-bar"></div></div>
-    <button onclick="evoluir('social')">Completar tarefa</button>
-</div>
+<div id="listaMissoes"></div>
 
 <script>
 if ('serviceWorker' in navigator) {
@@ -113,40 +44,84 @@ let atributos = JSON.parse(localStorage.getItem("atributos")) || {
     social:{xp:0,nivel:1}
 };
 
-function salvar(){
-    localStorage.setItem("atributos", JSON.stringify(atributos));
+let missoes = JSON.parse(localStorage.getItem("missoes")) || [];
+
+function salvarTudo(){
+  localStorage.setItem("atributos", JSON.stringify(atributos));
+  localStorage.setItem("missoes", JSON.stringify(missoes));
 }
 
-function evoluir(tipo){
-    atributos[tipo].xp += 20;
-
-    if(atributos[tipo].xp >= 100){
-        atributos[tipo].xp = 0;
-        atributos[tipo].nivel += 1;
-        alert(tipo.toUpperCase() + " subiu para o nível " + atributos[tipo].nivel);
-    }
-
-    atualizar();
-    salvar();
+function dataHoje(){
+  return new Date().toISOString().split("T")[0];
 }
 
-function atualizar(){
-    document.getElementById("disciplinaBar").style.width = atributos.disciplina.xp + "%";
-    document.getElementById("forcaBar").style.width = atributos.forca.xp + "%";
-    document.getElementById("intelectoBar").style.width = atributos.intelecto.xp + "%";
-    document.getElementById("financeiroBar").style.width = atributos.financeiro.xp + "%";
-    document.getElementById("espiritualBar").style.width = atributos.espiritual.xp + "%";
-    document.getElementById("socialBar").style.width = atributos.social.xp + "%";
+function criarMissao(){
+  if(missoes.length >= 10){
+    alert("Limite de 10 missões atingido.");
+    return;
+  }
 
-    document.querySelectorAll(".card")[0].querySelector("h3").innerText = "Disciplina - Nível " + atributos.disciplina.nivel;
-    document.querySelectorAll(".card")[1].querySelector("h3").innerText = "Força Física - Nível " + atributos.forca.nivel;
-    document.querySelectorAll(".card")[2].querySelector("h3").innerText = "Intelecto - Nível " + atributos.intelecto.nivel;
-    document.querySelectorAll(".card")[3].querySelector("h3").innerText = "Financeiro - Nível " + atributos.financeiro.nivel;
-    document.querySelectorAll(".card")[4].querySelector("h3").innerText = "Espiritual - Nível " + atributos.espiritual.nivel;
-    document.querySelectorAll(".card")[5].querySelector("h3").innerText = "Social - Nível " + atributos.social.nivel;
+  let nome = document.getElementById("nomeMissao").value;
+  let atributo = document.getElementById("atributoMissao").value;
+  let xp = parseInt(document.getElementById("xpMissao").value);
+
+  if(!nome || !xp) return alert("Preencha todos os campos.");
+
+  missoes.push({
+    id: Date.now(),
+    nome,
+    atributo,
+    xp,
+    concluidaHoje:false,
+    dataConclusao:null
+  });
+
+  salvarTudo();
+  atualizarMissoes();
 }
 
-atualizar();
+function concluirMissao(id){
+  let missao = missoes.find(m => m.id === id);
+
+  if(missao.dataConclusao === dataHoje()){
+    return alert("Já concluída hoje.");
+  }
+
+  atributos[missao.atributo].xp += missao.xp;
+
+  if(atributos[missao.atributo].xp >= 100){
+    atributos[missao.atributo].xp = 0;
+    atributos[missao.atributo].nivel++;
+    alert(missao.atributo.toUpperCase() + " subiu para nível " + atributos[missao.atributo].nivel);
+  }
+
+  missao.dataConclusao = dataHoje();
+
+  salvarTudo();
+  atualizarMissoes();
+}
+
+function atualizarMissoes(){
+  let lista = document.getElementById("listaMissoes");
+  lista.innerHTML = "";
+
+  missoes.forEach(m => {
+    let concluida = m.dataConclusao === dataHoje();
+
+    lista.innerHTML += `
+      <div class="card">
+        <strong>${m.nome}</strong><br>
+        Atributo: ${m.atributo}<br>
+        XP: ${m.xp}<br>
+        <button onclick="concluirMissao(${m.id})" ${concluida ? "disabled" : ""}>
+          ${concluida ? "Concluída Hoje" : "Concluir"}
+        </button>
+      </div>
+    `;
+  });
+}
+
+atualizarMissoes();
 </script>
 
 </body>
